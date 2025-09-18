@@ -1,0 +1,30 @@
+#!/bin/sh
+set -eu
+
+echo "---------- Git hook: pre-commit ----------"
+
+# Biome (lint and format)
+echo ">>> [1/5] Running Biome on frontend"
+(cd frontend && yarn biome:check)
+
+# Typescript (type checking)
+echo ">>> [2/5] Compiling Typescript"
+(cd frontend && yarn tsc)
+
+# Make sure the translations are up to date (type checking)
+echo ">>> [3/5] Check translations"
+(cd frontend && yarn i18n:check)
+
+# Ruff (imports, lint, and format)
+echo ""
+echo ">>> [4/5] Running Ruff on backend"
+(cd backend && ruff check --select I .)
+(cd backend && ruff check .)
+(cd backend && ruff format --check .)
+
+# Ty (type checking)
+echo ""
+echo ">>> [5/5] Running Ty on backend"
+(cd backend && ty check . --error-on-warning)
+
+echo "------------------------------------------"

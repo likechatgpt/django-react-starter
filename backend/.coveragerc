@@ -1,0 +1,21 @@
+[run]
+omit =
+    # [Django] Server
+    manage.py
+    django_react_starter/settings/development.py
+    django_react_starter/settings/production.py
+    django_react_starter/asgi.py
+    django_react_starter/wsgi.py
+    django_react_starter/sentry.py
+    # [Django] Common files
+    */__init__.py
+    */migrations/*
+    */tests/*
+    */admin.py
+    # [Django] Celery tasks
+    */tasks.py
+
+[report]
+exclude_lines =
+    pragma: no cover
+    if TYPE_CHECKING:

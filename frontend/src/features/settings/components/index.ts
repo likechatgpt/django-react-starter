@@ -1,0 +1,6 @@
+// File: src/features/settings/components/index.ts
+export { DangerZone } from "./DangerZone";
+export { GoBackButton } from "./GoBackButton";
+export { PasswordForm } from "./PasswordForm";
+export { UserForm } from "./UserForm";
+export { UserSettings } from "./UserSettings";

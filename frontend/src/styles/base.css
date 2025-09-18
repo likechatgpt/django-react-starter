@@ -1,0 +1,14 @@
+/* File: src/styles/base.css */
+@import "tailwindcss/base";
+@import "tailwindcss/components";
+@import "tailwindcss/utilities";
+
+@config "../../tailwind.config.js";
+
+html {
+  font-family: "Nunito Sans", sans-serif;
+}
+
+:root {
+  --toastify-font-family: "Nunito Sans", sans-serif;
+}

@@ -1,0 +1,85 @@
+{% extends "admin/login.html" %}
+{% load i18n static %}
+
+{% block extrahead %}
+{{ block.super }}
+<style>
+.password-toggle-container {
+    position: relative;
+    display: inline-block;
+    width: 100%;
+}
+
+.password-toggle-btn {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #666;
+    font-size: 14px;
+    padding: 5px;
+    z-index: 10;
+}
+
+.password-toggle-btn:hover {
+    color: #333;
+}
+
+/* Adjust input padding to make room for toggle button */
+input[type="password"].password-with-toggle,
+input[type="text"].password-with-toggle {
+    padding-right: 40px !important;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+{{ block.super }}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Find the password input field
+    const passwordInput = document.querySelector('input[type="password"]');
+
+    if (passwordInput) {
+        // Create container for password input and toggle button
+        const container = document.createElement('div');
+        container.className = 'password-toggle-container';
+
+        // Insert container before password input
+        passwordInput.parentNode.insertBefore(container, passwordInput);
+
+        // Move password input into container
+        container.appendChild(passwordInput);
+
+        // Add class to password input for styling
+        passwordInput.classList.add('password-with-toggle');
+
+        // Create toggle button
+        const toggleBtn = document.createElement('button');
+        toggleBtn.type = 'button';
+        toggleBtn.className = 'password-toggle-btn';
+        toggleBtn.innerHTML = '👁️'; // You can use an icon library or SVG instead
+        toggleBtn.setAttribute('aria-label', 'Toggle password visibility');
+
+        // Add toggle button to container
+        container.appendChild(toggleBtn);
+
+        // Add click event to toggle password visibility
+        toggleBtn.addEventListener('click', function() {
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                toggleBtn.innerHTML = '🙈'; // Hide icon
+                toggleBtn.setAttribute('aria-label', 'Hide password');
+            } else {
+                passwordInput.type = 'password';
+                toggleBtn.innerHTML = '👁️'; // Show icon
+                toggleBtn.setAttribute('aria-label', 'Show password');
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

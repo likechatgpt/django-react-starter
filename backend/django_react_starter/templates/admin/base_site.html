@@ -1,0 +1,15 @@
+<!-- File: backend/django_react_starter/templates/admin/base_site.html -->
+{% extends 'admin/base_site.html' %}
+
+{% block extrahead %}
+{{ block.super }}
+<meta http-equiv="Permissions-Policy" content="unload=*">
+<link rel="icon" type="image/svg" href="https://jordan-kowal.github.io/assets/jkdev/favicon.ico">
+{% endblock %}
+
+{% block branding %}
+<a href="{% url 'admin:index' %}" id="site-name">
+  <img src="https://jordan-kowal.github.io/assets/jkdev/logo.png" alt="logo" height="25" style="margin-right: 8px;">
+</a>
+{{ block.super }}
+{% endblock %}
