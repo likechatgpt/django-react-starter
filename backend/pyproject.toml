@@ -18,6 +18,14 @@ dependencies = [
     "django-utils-kit>=1.0.0",
     "django-meilisearch-indexer>=1.0.1",
     "django-anymail[sendinblue]>=13.0.1",
+    "cryptography>=43.0.0",
+    "requests>=2.32.0",
+    "python-dotenv>=1.0.0",
+    "stripe>=6.0.0",
+    "django-cors-headers>=4.4.0",
+    "django-redis>=5.4.0",
+    "redis>=5.0.0",
+    "psycopg[binary]>=3.2.0",
 ]
 # ------------------------------
 # UV

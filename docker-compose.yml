@@ -11,6 +11,7 @@ services:
       - postgres
       - rabbitmq
       - meilisearch
+      - redis
     networks:
       - django_react_starter_network
     ports:
@@ -24,7 +25,7 @@ services:
     image: node:22.14.0-slim
     container_name: django_react_starter_front
     working_dir: /app
-    command: bash -c "yarn install && yarn start --host"
+    command: bash -c "yarn install && yarn dev --host"
     networks:
       - django_react_starter_network
     ports:
@@ -92,6 +93,20 @@ services:
       - django_react_starter_network
     ports:
       - "24900:24900"
+    profiles:
+      - all
+      - lite
+
+  redis:
+    container_name: django_react_starter_redis
+    image: redis:7.4-alpine
+    command: redis-server --appendonly yes
+    networks:
+      - django_react_starter_network
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./data/redis:/data
     profiles:
       - all
       - lite

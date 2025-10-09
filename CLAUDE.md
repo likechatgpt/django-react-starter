@@ -30,6 +30,10 @@ All backend commands run inside the Docker container:
 - `make backend.shell` - Open Django shell
 - `make backend.bash` - Open bash session in backend container
 
+Direct Django commands (run inside backend container):
+- `python manage.py test <app.tests.TestClass.test_method>` - Run specific test
+- `python manage.py test <app_name>` - Run tests for specific app
+
 ### Frontend (React)
 Commands run in the frontend container via yarn:
 
@@ -76,10 +80,24 @@ Direct yarn commands (if working inside container):
 ### API Structure
 All API endpoints are prefixed with `/api/v1/`:
 - `/api/v1/auth/` - Authentication endpoints
-- `/api/v1/self/` - User profile management  
+- `/api/v1/self/` - User profile management
 - `/api/v1/health/` - Health check endpoints
 - `/api/v1/docs/` - Swagger API documentation
 - `/api/v1/schema/` - OpenAPI schema
+
+### Backend (Django)
+- **Views**: Always use viewsets, specifically `ImprovedViewSet` from `django_utils_kit` for new API views
+- **Business Logic**: Keep business logic in models; keep views light and focused on request handling
+- **Signals**: Avoid using signals for save-workflow actions unless no other solution exists
+- **ORM**: Use Django ORM's `select_related` and `prefetch_related` for query optimization
+- **Async Tasks**: Use Celery for I/O-bound or long-running operations
+
+### Frontend (React)
+- **Components**: Use functional components with TypeScript; prefer types over interfaces
+- **Exports**: Always use named exports for components, except for page components
+- **Text**: Always wrap user-facing text in i18n translation functions
+- **Performance**: Use `useCallback`, `useMemo`, and `memo` for optimization
+- **Structure**: If a component/hook is used by a single feature, place it in that feature's folder
 
 ### Key Development Notes
 - Use `make help` to see all available commands

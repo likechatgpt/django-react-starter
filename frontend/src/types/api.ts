@@ -10,10 +10,22 @@ export interface BaseModel {
 // Download types
 export interface Download extends BaseModel {
   title: string;
-  description?: string;
-  file_name?: string;
-  file_size?: number;
+  description: string;
+  category: string;
+  category_display: string;
+  file: string;
+  file_url: string;
+  file_name: string;
+  file_size: number;
+  file_size_display: string;
+  is_active: boolean;
   download_count: number;
+}
+
+export interface DownloadCategory {
+  code: string;
+  name: string;
+  count: number;
 }
 
 // Product types
@@ -55,6 +67,7 @@ export interface NavigationItem {
   id: string;
   name: string;
   icon: string;
+  path: string;
 }
 
 // Filter types

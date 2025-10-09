@@ -2,16 +2,34 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
+import fs from "fs";
+import { visualizer } from "rollup-plugin-visualizer";
+
+const runningInDocker = fs.existsSync("/.dockerenv");
+const backendTarget =
+  process.env.VITE_BACKEND_PROXY_TARGET ||
+  process.env.BACKEND_PROXY_TARGET ||
+  (runningInDocker ? "http://api:8000" : "http://127.0.0.1:8000");
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react(),
+    // Bundle analyzer - generates stats.html after build
+    visualizer({
+      filename: "dist/stats.html",
+      open: true,
+      gzipSize: true,
+      brotliSize: true,
+      template: "treemap", // 'treemap', 'sunburst', 'network'
+    }),
+  ],
   server: {
     host: "localhost",
     port: 3000,
     proxy: {
       "/api": {
-        target: "http://127.0.0.1:8000",  // Match your Django server
+        target: backendTarget, // Match the Django server
         changeOrigin: true,
         secure: false,
         configure: (proxy, _options) => {
@@ -24,17 +42,17 @@ export default defineConfig({
         },
       },
       "/admin": {
-        target: "http://127.0.0.1:8000",
+        target: backendTarget,
         changeOrigin: true,
         secure: false,
       },
       "/static": {
-        target: "http://127.0.0.1:8000",
+        target: backendTarget,
         changeOrigin: true,
         secure: false,
       },
       "/media": {
-        target: "http://127.0.0.1:8000",
+        target: backendTarget,
         changeOrigin: true,
         secure: false,
       },
