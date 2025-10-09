@@ -13,6 +13,7 @@ services:
       - ./nginx/conf.d:/etc/nginx/conf.d:ro
       - ./backend/staticfiles:/home/app/backend/staticfiles:ro
       - ./backend/mediafiles:/home/app/backend/mediafiles:ro
+      - ./frontend/dist:/home/app/backend/frontend/dist:ro
       - ./certbot/conf:/etc/letsencrypt:ro
       - ./certbot/www:/var/www/certbot:ro
     depends_on:
@@ -26,7 +27,7 @@ services:
     restart: unless-stopped
     build:
       context: .
-      dockerfile: ./docker/Dockerfile.prod
+      dockerfile: ./docker/Dockerfile.prod.china
       args:
         VITE_ENVIRONMENT: production
         VITE_APP_VERSION: v1.0.0

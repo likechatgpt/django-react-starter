@@ -34,7 +34,7 @@ __pycache__
 # Frontend
 frontend/coverage/
 frontend/node_modules/
-frontend/dist
+# frontend/dist - DO NOT IGNORE: needed for nginx to serve files
 frontend/.vite
 npm-debug.log
 yarn-debug.log

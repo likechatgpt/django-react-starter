@@ -43,6 +43,7 @@ case $COMMAND in
         mkdir -p backend/staticfiles backend/mediafiles
         mkdir -p certbot/conf certbot/www
         mkdir -p nginx/conf.d
+        mkdir -p frontend/dist
 
         # Generate Django secret key if not set
         print_info "Checking Django SECRET_KEY..."
@@ -62,6 +63,12 @@ case $COMMAND in
     "build")
         print_info "Building production images..."
         docker compose -f docker-compose.prod.yml build --no-cache
+
+        # Extract frontend dist files
+        print_info "Extracting frontend files from Docker image..."
+        chmod +x extract-frontend.sh
+        ./extract-frontend.sh
+
         print_info "Build complete!"
         ;;
 
@@ -75,6 +82,11 @@ case $COMMAND in
         # Build application image
         print_info "Building application..."
         docker compose -f docker-compose.prod.yml build
+
+        # Extract frontend dist files
+        print_info "Extracting frontend files from Docker image..."
+        chmod +x extract-frontend.sh
+        ./extract-frontend.sh
 
         # Start services
         print_info "Starting services..."
@@ -139,6 +151,11 @@ case $COMMAND in
         # Rebuild and restart
         print_info "Rebuilding application..."
         docker compose -f docker-compose.prod.yml build api celery_worker
+
+        # Extract frontend dist files
+        print_info "Extracting frontend files from Docker image..."
+        chmod +x extract-frontend.sh
+        ./extract-frontend.sh
 
         print_info "Restarting services..."
         docker compose -f docker-compose.prod.yml up -d --no-deps api celery_worker

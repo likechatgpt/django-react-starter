@@ -1,32 +1,38 @@
-# Fix for Static Files 404 Error
+# Fix for Static Files 404 Error - UPDATED SOLUTION
 
 ## Problem
-The React app's static files (JavaScript and CSS) are returning 404 errors because nginx was configured to serve `/static/` from the wrong directory.
+The React app's static files (JavaScript and CSS) are returning 404 errors because nginx couldn't access the files built inside the Docker container.
 
-## Root Cause
-- React/Vite builds the app into `/home/app/backend/frontend/dist/` with a subdirectory `/home/app/backend/frontend/dist/static/` for JS/CSS files
-- The nginx configuration was pointing `/static/` to `/home/app/backend/staticfiles/` (Django's static files directory)
-- This mismatch caused all React static files to return 404
+## Root Causes
+1. React/Vite builds the app into `/home/app/backend/frontend/dist/` inside the Docker image during build
+2. Nginx container had no volume mount to access these files
+3. The nginx configuration was pointing `/static/` to the wrong directory (`/home/app/backend/staticfiles/` instead of `/home/app/backend/frontend/dist/static/`)
 
 ## Solution
-The nginx configuration has been updated to:
-1. Serve `/static/` from `/home/app/backend/frontend/dist/static/` (React app assets)
-2. Serve Django admin static files from `/django-static/`
-3. Serve the React app's index.html directly from nginx instead of proxying to Django
-4. Handle SPA routing with `try_files` for client-side routes
+The fix involves two changes:
+
+### 1. Extract Frontend Files to Host
+- Frontend dist files are extracted from the Docker image to `./frontend/dist/` on the host
+- This directory is then mounted into the nginx container
+- The `extract-frontend.sh` script handles this automatically
+
+### 2. Updated Nginx Configuration
+- `/static/` now serves from `/home/app/backend/frontend/dist/static/` (React app assets)
+- Django admin static files moved to `/django-static/`
+- React app's index.html served directly from nginx with SPA routing support
 
 ## Steps to Apply the Fix
 
 ### Step 1: Push Updated Configuration
-From your **local machine**, push the updated nginx configuration:
+From your **local machine**:
 
 ```bash
-git add nginx/conf.d/default.conf
-git commit -m "Fix nginx configuration for React static files"
+git add docker-compose.prod.yml nginx/conf.d/default.conf deploy.sh extract-frontend.sh .dockerignore
+git commit -m "Fix static files: extract frontend dist to host and update nginx config"
 git push origin main
 ```
 
-### Step 2: Update Server
+### Step 2: Update and Rebuild on Server
 On your **Tencent Cloud server** (101.42.231.188):
 
 ```bash
@@ -34,76 +40,145 @@ On your **Tencent Cloud server** (101.42.231.188):
 sudo su - appuser
 cd /opt/django-react-starter
 
-# Pull the updated configuration
+# Pull the latest changes
 git pull origin main
 
-# Restart nginx to apply the changes
-docker compose -f docker-compose.prod.yml restart nginx
+# Stop containers
+docker compose -f docker-compose.prod.yml down
+
+# Rebuild with the new configuration
+./deploy.sh start
 ```
 
-### Step 3: Verify the Fix
-1. Open your browser to http://101.42.231.188
-2. Open the browser console (F12)
-3. Refresh the page (Ctrl+F5 or Cmd+Shift+R to force reload)
-4. The page should now load properly with no 404 errors for static files
+**Note**: The `deploy.sh start` command will:
+1. Build the Docker image (which includes building the React frontend)
+2. Extract the frontend dist files to `./frontend/dist/` on the host
+3. Start all containers
+4. Nginx will mount and serve files from `./frontend/dist/`
 
-### Step 4: Test
-- The React app should render correctly
-- Check that the console shows no errors
-- Navigate between pages to ensure routing works
-- The favicon should also load correctly
+### Step 3: Verify the Fix
+1. Open http://101.42.231.188 in your browser
+2. Press **Ctrl+Shift+R** (or Cmd+Shift+R on Mac) to force reload and clear cache
+3. The React app should now load properly! ✨
 
 ## What Changed
 
-### Before:
+### Docker Compose (docker-compose.prod.yml)
+**Before:**
+```yaml
+nginx:
+  volumes:
+    - ./backend/staticfiles:/home/app/backend/staticfiles:ro
+    # Missing: frontend dist mount!
+```
+
+**After:**
+```yaml
+nginx:
+  volumes:
+    - ./backend/staticfiles:/home/app/backend/staticfiles:ro
+    - ./frontend/dist:/home/app/backend/frontend/dist:ro  # NEW: Mount frontend dist
+```
+
+### Nginx Configuration (nginx/conf.d/default.conf)
+**Before:**
 ```nginx
 location /static/ {
-    alias /home/app/backend/staticfiles/;  # Wrong directory!
+    alias /home/app/backend/staticfiles/;  # Wrong! This is for Django
 }
 
 location / {
-    proxy_pass http://django;  # Django was serving the React app
+    proxy_pass http://django;  # Django was serving React app
 }
 ```
 
-### After:
+**After:**
 ```nginx
 location /static/ {
-    alias /home/app/backend/frontend/dist/static/;  # Correct directory!
+    alias /home/app/backend/frontend/dist/static/;  # Correct: React assets
 }
 
 location /django-static/ {
-    alias /home/app/backend/staticfiles/;  # Django static files moved here
+    alias /home/app/backend/staticfiles/;  # Django admin assets
 }
 
 location / {
-    root /home/app/backend/frontend/dist;  # nginx serves React app directly
-    try_files $uri $uri/ /index.html;  # SPA routing support
+    root /home/app/backend/frontend/dist;  # nginx serves React app
+    try_files $uri $uri/ /index.html;     # SPA routing
 }
 ```
 
-## Benefits of This Approach
-1. **Better Performance**: nginx serves static files directly instead of proxying through Django
-2. **Correct File Resolution**: Static files are served from the correct directory
-3. **SPA Support**: Client-side routing works properly with `try_files`
-4. **Separation of Concerns**: React assets separate from Django admin assets
+### Deploy Script (deploy.sh)
+Added automatic frontend extraction:
+```bash
+# Extract frontend dist files
+print_info "Extracting frontend files from Docker image..."
+chmod +x extract-frontend.sh
+./extract-frontend.sh
+```
+
+### New Script (extract-frontend.sh)
+```bash
+#!/bin/bash
+# Extracts frontend dist from Docker image to ./frontend/dist/ on host
+CONTAINER_ID=$(docker create django_react_starter_api:prod)
+docker cp $CONTAINER_ID:/home/app/backend/frontend/dist/. ./frontend/dist/
+docker rm $CONTAINER_ID
+```
+
+## How It Works
+
+1. **Build Phase**:
+   - Frontend is built inside Docker image during `docker build`
+   - React/Vite creates `/home/app/backend/frontend/dist/` with all static files
+
+2. **Extract Phase** (NEW):
+   - `extract-frontend.sh` creates a temporary container
+   - Copies `/home/app/backend/frontend/dist/` from container to host at `./frontend/dist/`
+   - This makes files accessible outside the container
+
+3. **Runtime Phase**:
+   - nginx container mounts `./frontend/dist/` from host
+   - nginx serves files directly (better performance than proxying)
+   - React app loads with all static assets
+
+## Benefits
+1. ✅ **Correct File Access**: nginx can read frontend files from host mount
+2. ✅ **Better Performance**: nginx serves static files directly (no Django proxy)
+3. ✅ **SPA Support**: Client-side routing works with `try_files`
+4. ✅ **Separation**: React assets separate from Django admin assets
+5. ✅ **Persistent**: Frontend files persist on host, survive container restarts
 
 ## Troubleshooting
 
-### If the page still shows 404 errors:
+### If frontend/dist is empty after extraction:
 ```bash
-# Check nginx logs
-docker compose -f docker-compose.prod.yml logs nginx --tail=50
+# Check if files were built in the image
+docker run --rm django_react_starter_api:prod ls -la /home/app/backend/frontend/dist/
 
-# Verify files exist in container
+# If empty, rebuild the image
+docker compose -f docker-compose.prod.yml build --no-cache api
+./extract-frontend.sh
+```
+
+### If page still shows 404 errors:
+```bash
+# 1. Verify files exist on host
+ls -la ./frontend/dist/
+ls -la ./frontend/dist/static/
+
+# 2. Check nginx can access them
 docker compose -f docker-compose.prod.yml exec nginx ls -la /home/app/backend/frontend/dist/
 docker compose -f docker-compose.prod.yml exec nginx ls -la /home/app/backend/frontend/dist/static/
 
-# Test direct file access
+# 3. Check nginx logs
+docker compose -f docker-compose.prod.yml logs nginx --tail=50
+
+# 4. Test direct file access
 curl http://101.42.231.188/static/index-COiS3hXT.js
 ```
 
-### If nginx fails to restart:
+### If nginx fails to start:
 ```bash
 # Check nginx configuration syntax
 docker compose -f docker-compose.prod.yml exec nginx nginx -t
@@ -114,8 +189,29 @@ docker compose -f docker-compose.prod.yml logs nginx
 
 ### Clear browser cache:
 - Chrome/Edge: Ctrl+Shift+Delete (Windows) or Cmd+Shift+Delete (Mac)
-- Firefox: Ctrl+Shift+Delete (Windows) or Cmd+Shift+Delete (Mac)
 - Or use Incognito/Private browsing mode
+- Or hard reload: Ctrl+Shift+R (Windows) or Cmd+Shift+R (Mac)
 
-## Note
-If you need to access Django admin static files (CSS, JS for /admin/), they are now available at `/django-static/` instead of `/static/`.
+## Directory Structure After Fix
+```
+/opt/django-react-starter/
+├── frontend/
+│   └── dist/              # ← Extracted from Docker image
+│       ├── index.html
+│       ├── favicon.ico
+│       └── static/        # ← JS and CSS files
+│           ├── index-COiS3hXT.js
+│           ├── index-CGEkE_ZS.css
+│           └── vendor-DavUf6mE.js
+├── backend/
+│   └── staticfiles/       # ← Django admin static files
+├── nginx/
+│   └── conf.d/
+│       └── default.conf   # ← Updated configuration
+├── docker-compose.prod.yml  # ← Updated with volume mount
+├── deploy.sh              # ← Updated with extraction step
+└── extract-frontend.sh    # ← New extraction script
+```
+
+## Note for Django Admin
+Django admin static files (CSS, JS for /admin/) are now available at `/django-static/` instead of `/static/`. The Django admin will still work because Django's `STATIC_URL` setting handles this internally.
