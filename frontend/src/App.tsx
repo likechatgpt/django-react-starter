@@ -145,7 +145,6 @@ function App(): JSX.Element {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             {/* Company Info */}
             <div className="col-span-1 md:col-span-2">
-              <h3 className="text-xl font-bold mb-4">冯总</h3>
               <p className="text-gray-300 mb-4">
                 为企业及行业专家提供AI驱动的<span className="text-blue-400 font-bold text-lg">数据采集-清理-统计分析-可视化-报告生成</span>的智能化及自动化服务， 致力于通过AI技术赋能业务增长，推动数字化转型创新。
               </p>
