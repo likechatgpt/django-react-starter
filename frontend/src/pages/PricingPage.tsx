@@ -253,14 +253,14 @@ export default function PricingPage(): JSX.Element {
           <div className={`grid grid-cols-1 gap-8 mx-auto ${activeTab === '报告生成' ? 'max-w-md' : (activeTab === '统计分析' || activeTab === '数据可视化') ? 'max-w-6xl md:grid-cols-2' : 'max-w-6xl md:grid-cols-3'}`}>
 
             {/* 免费版 - Hidden for 统计分析, 数据可视化, and 报告生成 */}
-            {activeTab !== '统计分析' && activeTab !== '数据可视化' && activeTab !== '报告生成' && currentPricing.免费版 && (
+            {activeTab !== '统计分析' && activeTab !== '数据可视化' && activeTab !== '报告生成' && '免费版' in currentPricing && currentPricing.免费版 && (
               <div className="bg-white rounded-lg shadow-lg p-8 border border-gray-200">
                 <div className="text-center mb-8">
                   <h3 className="text-2xl font-bold text-gray-900 mb-4">免费版</h3>
                 </div>
 
                 <div className="space-y-4 mb-8">
-                  {currentPricing.免费版.features.map((feature, index) => (
+                  {('免费版' in currentPricing && currentPricing.免费版) && currentPricing.免费版.features.map((feature: string, index: number) => (
                     <div key={index} className="flex items-center">
                       <svg className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
@@ -277,14 +277,14 @@ export default function PricingPage(): JSX.Element {
             )}
 
             {/* 学术版 - Hidden for 报告生成 */}
-            {currentPricing.学术版 && (
+            {'学术版' in currentPricing && currentPricing.学术版 && (
               <div className="bg-white rounded-lg shadow-xl p-8 border-2 border-blue-500 relative">
                 <div className="text-center mb-8">
                   <h3 className="text-2xl font-bold text-gray-900 mb-4">学术版</h3>
                 </div>
 
                 <div className="space-y-4 mb-8">
-                  {currentPricing.学术版.features.map((feature, index) => (
+                  {('学术版' in currentPricing && currentPricing.学术版) && currentPricing.学术版.features.map((feature: string, index: number) => (
                     <div key={index} className="flex items-center">
                       <svg className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
@@ -307,7 +307,7 @@ export default function PricingPage(): JSX.Element {
               </div>
 
               <div className="space-y-4 mb-8">
-                {currentPricing.企业版.features.map((feature, index) => (
+                {currentPricing.企业版.features.map((feature: string, index: number) => (
                   <div key={index} className="flex items-center">
                     <svg className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
