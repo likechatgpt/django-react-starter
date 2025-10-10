@@ -210,7 +210,7 @@ export default function PricingPage(): JSX.Element {
     }
   };
 
-  const currentPricing = pricingData[activeTab];
+  const currentPricing = pricingData[activeTab as keyof typeof pricingData];
 
   return (
     <div className="min-h-screen bg-gray-50">

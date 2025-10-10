@@ -1,14 +1,4 @@
-import { useState } from 'react';
-
 export default function ProductsServicesPage(): JSX.Element {
-  const [expandedSections, setExpandedSections] = useState<{ [key: string]: boolean }>({});
-
-  const toggleSection = (sectionId: string) => {
-    setExpandedSections(prev => ({
-      ...prev,
-      [sectionId]: !prev[sectionId]
-    }));
-  };
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header Section */}
