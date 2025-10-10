@@ -13,3 +13,11 @@ dist/
 build/
 .idea/
 .vscode/
+data/
+*.tar.gz
+*.zip
+*.pkg
+*.dmg
+deployment-fixes.tar.gz
+/backend/media/
+/frontend/dist/
